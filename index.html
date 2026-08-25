@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chequeo físico — Estadísticas</title>
+<link rel="stylesheet" href="css/estilos.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🥋</text></svg>">
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="contenedor cabecera-fila">
+    <div class="titulo">
+      <h1>Chequeo físico</h1>
+      <p class="subtitulo">
+        Pruebas de <strong id="meta-duracion">10 seg</strong> ·
+        Metas diarias: cintura <strong id="meta-cintura">200</strong>,
+        puños <strong id="meta-punos">50</strong>,
+        patadas <strong id="meta-patadas">50</strong>
+      </p>
+    </div>
+    <nav id="pestanas" class="pestanas" aria-label="Vistas">
+      <a href="#/general"     data-vista="general">General</a>
+      <a href="#/fecha"       data-vista="fecha">Por fecha</a>
+      <a href="#/individual"  data-vista="individual">Individual</a>
+    </nav>
+  </div>
+</header>
+
+<main id="vista" class="contenedor" role="main">
+  <p class="cargando">Cargando…</p>
+</main>
+
+<footer class="pie">
+  <div class="contenedor">
+    <p>
+      Para cargar un chequeo nuevo usa <a href="capturar.html">la planilla de captura</a>.
+    </p>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/datos.js"></script>
+<script src="js/calculos.js"></script>
+<script src="js/grafico.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

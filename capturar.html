@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cargar chequeo — Chequeo físico</title>
+<link rel="stylesheet" href="css/estilos.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🥋</text></svg>">
+<style>
+  .captura input[type=number], .captura input[type=text] {
+    font: inherit; width: 100%; min-width: 46px; padding: 5px 6px;
+    border: 1px solid var(--borde); border-radius: 6px;
+    background: var(--superficie); color: var(--texto);
+    text-align: right; font-variant-numeric: tabular-nums;
+  }
+  .captura input:focus { outline: 2px solid var(--acento); outline-offset: -1px; }
+  .captura td { padding: 4px 5px; }
+  .captura .col-alumno { min-width: 168px; }
+  .captura .col-alumno label { display: flex; align-items: center; gap: 7px; font-weight: 600; cursor: pointer; }
+  .captura .col-alumno input[type=text] { text-align: left; }
+  .par { display: flex; gap: 4px; min-width: 104px; }
+  .ausente { opacity: .32; }
+  .ausente input[type=number] { pointer-events: none; }
+  .barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0; }
+  .boton {
+    font: inherit; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--borde-fuerte); background: var(--superficie); color: var(--texto);
+  }
+  .boton:hover { border-color: var(--acento); color: var(--acento); }
+  .boton-principal { background: var(--acento); border-color: var(--acento); color: #fff; }
+  .boton-principal:hover { color: #fff; filter: brightness(1.1); }
+  .salida {
+    width: 100%; min-height: 260px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; line-height: 1.45; padding: 12px; border-radius: var(--radio);
+    border: 1px solid var(--borde); background: var(--superficie); color: var(--texto);
+    white-space: pre; overflow: auto;
+  }
+  .pasos { font-size: 13.5px; color: var(--texto-suave); max-width: 68ch; }
+  .pasos li { margin-bottom: 5px; }
+  .aviso { color: var(--baja); font-weight: 600; font-size: 13px; }
+  /* En la captura las columnas siguen el orden del papel, así que el bloque de
+     cada ejercicio se señala con color y una línea en su propia cabecera. */
+  .captura .cab-ej { border-bottom: 2px solid currentColor; }
+  .captura .cab-ej.grupo-tronco  { color: var(--tronco); }
+  .captura .cab-ej.grupo-punos   { color: var(--punos); }
+  .captura .cab-ej.grupo-patadas { color: var(--patadas); }
+  .leyenda-bloques { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; font-weight: 650; margin-top: 10px; }
+  .leyenda-bloques span { display: inline-flex; align-items: center; gap: 5px; }
+  .leyenda-bloques span::before { content: ""; width: 12px; height: 3px; border-radius: 2px; background: currentColor; }
+  .leyenda-bloques .grupo-tronco  { color: var(--tronco); }
+  .leyenda-bloques .grupo-punos   { color: var(--punos); }
+  .leyenda-bloques .grupo-patadas { color: var(--patadas); }
+  .ok { color: var(--sube); font-weight: 600; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="contenedor cabecera-fila">
+    <div class="titulo">
+      <h1>Cargar un chequeo</h1>
+      <p class="subtitulo">Llena la planilla y copia el bloque que se genera abajo</p>
+    </div>
+    <nav class="pestanas"><a href="index.html">← Volver a las estadísticas</a></nav>
+  </div>
+</header>
+
+<main class="contenedor" role="main">
+
+  <div class="controles">
+    <label for="fecha">Fecha del chequeo</label>
+    <input type="date" id="fecha" class="boton" style="text-align:left">
+    <button type="button" class="boton" id="btn-alumno">+ Agregar alumno</button>
+    <span class="conteo" id="conteo"></span>
+  </div>
+
+  <p class="nota">
+    Destilda a quien no asistió. Deja en blanco lo que no se midió: se guarda como
+    <code>null</code> y no ensucia los promedios. En <strong>doble pie</strong> el primer
+    campo es la pierna <strong>derecha</strong>.
+  </p>
+
+  <div class="tabla-scroll">
+    <table class="planilla captura">
+      <thead>
+        <tr id="cab-ejercicios"><th class="col-alumno">Alumno</th><th>KIP</th></tr>
+      </thead>
+      <tbody id="cuerpo"></tbody>
+    </table>
+  </div>
+
+  <div class="leyenda-bloques" id="leyenda-bloques"></div>
+
+  <div class="barra">
+    <button type="button" class="boton boton-principal" id="btn-generar">Generar bloque</button>
+    <button type="button" class="boton" id="btn-copiar">Copiar al portapapeles</button>
+    <span id="estado"></span>
+  </div>
+
+  <textarea class="salida" id="salida" readonly spellcheck="false"
+    placeholder="Aquí va a aparecer el bloque para pegar en js/datos.js"></textarea>
+
+  <ol class="pasos">
+    <li>Copia el bloque de arriba.</li>
+    <li>Abre <code>js/datos.js</code> y pégalo dentro de <code>chequeos: [ … ]</code>, separado por coma del anterior.</li>
+    <li>Si el bloque trae una sección <code>alumnos nuevos</code>, pega también esas líneas dentro de <code>alumnos: [ … ]</code>.</li>
+    <li>Guarda y recarga <a href="index.html">index.html</a>.</li>
+  </ol>
+
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/datos.js"></script>
+<script>
+(function () {
+
+  var $cuerpo = document.getElementById("cuerpo");
+  var $fecha = document.getElementById("fecha");
+  var nuevos = [];   // alumnos agregados desde este formulario
+
+  /* Sugerir la fecha de hoy sin depender de la zona horaria del navegador
+     para el formato: toLocaleDateString con 'sv' da directamente AAAA-MM-DD. */
+  $fecha.value = new Date().toLocaleDateString("sv");
+
+  /* --- cabeceras de la tabla ------------------------------------------- */
+
+  /* Las columnas van en el orden del papel, no agrupadas por bloque: aquí se
+     transcribe leyendo la hoja de izquierda a derecha. El bloque de cada
+     ejercicio se indica con color en su propia cabecera. */
+  var filaEj = document.getElementById("cab-ejercicios");
+  CONFIG.ordenPlanilla.forEach(function (e) {
+    var g = CONFIG.grupoDe(e);
+    var th = document.createElement("th");
+    th.className = "cab-ej" + (g ? " grupo-" + g.id : "");
+    th.textContent = CONFIG.ejercicios[e].corto;
+    th.title = CONFIG.ejercicios[e].nombre + (g ? " — " + g.nombre : "") +
+               (CONFIG.ejercicios[e].bilateral ? " (derecha / izquierda)" : "");
+    filaEj.appendChild(th);
+  });
+
+  // Leyenda: qué color corresponde a cada bloque.
+  var $ley = document.getElementById("leyenda-bloques");
+  CONFIG.grupos.forEach(function (g) {
+    var sp = document.createElement("span");
+    sp.className = "grupo-" + g.id;
+    sp.textContent = g.nombre;
+    $ley.appendChild(sp);
+  });
+
+  /* --- filas ------------------------------------------------------------ */
+
+  function celdaEjercicio(alumnoId, ejercicioId) {
+    var td = document.createElement("td");
+    if (CONFIG.ejercicios[ejercicioId].bilateral) {
+      var caja = document.createElement("div");
+      caja.className = "par";
+      ["der", "izq"].forEach(function (lado) {
+        var i = document.createElement("input");
+        i.type = "number"; i.min = "0"; i.inputMode = "numeric";
+        i.dataset.alumno = alumnoId; i.dataset.ejercicio = ejercicioId; i.dataset.lado = lado;
+        i.placeholder = lado === "der" ? "der" : "izq";
+        i.title = CONFIG.ejercicios[ejercicioId].nombre + " " +
+                  (lado === "der" ? "derecha" : "izquierda");
+        caja.appendChild(i);
+      });
+      td.appendChild(caja);
+    } else {
+      var inp = document.createElement("input");
+      inp.type = "number"; inp.min = "0"; inp.inputMode = "numeric";
+      inp.dataset.alumno = alumnoId; inp.dataset.ejercicio = ejercicioId;
+      td.appendChild(inp);
+    }
+    return td;
+  }
+
+  function agregarFila(alumno, esNuevo) {
+    var tr = document.createElement("tr");
+    tr.dataset.alumno = alumno.id;
+
+    var th = document.createElement("th");
+    th.className = "col-alumno";
+    th.scope = "row";
+
+    var lab = document.createElement("label");
+    var chk = document.createElement("input");
+    chk.type = "checkbox"; chk.checked = true; chk.className = "presente";
+    chk.title = "Destilda si no asistió";
+    chk.addEventListener("change", function () {
+      tr.classList.toggle("ausente", !chk.checked);
+      actualizarConteo();
+    });
+    lab.appendChild(chk);
+
+    if (esNuevo) {
+      var txt = document.createElement("input");
+      txt.type = "text"; txt.value = alumno.nombre; txt.className = "nombre-nuevo";
+      txt.placeholder = "Nombre del alumno";
+      lab.appendChild(txt);
+    } else {
+      lab.appendChild(document.createTextNode(alumno.nombre));
+    }
+    th.appendChild(lab);
+    tr.appendChild(th);
+
+    // KUP: se precarga con el último grado conocido, que casi nunca cambia.
+    var tdKup = document.createElement("td");
+    var kup = document.createElement("input");
+    kup.type = "number"; kup.min = "0"; kup.className = "kup-input"; kup.style.minWidth = "52px";
+    kup.value = esNuevo ? "" : ultimoKup(alumno.id);
+    kup.title = "Grado. 0 equivale a la O de la planilla.";
+    tdKup.appendChild(kup);
+    tr.appendChild(tdKup);
+
+    CONFIG.ordenPlanilla.forEach(function (e) {
+      tr.appendChild(celdaEjercicio(alumno.id, e));
+    });
+
+    $cuerpo.appendChild(tr);
+    actualizarConteo();
+    return tr;
+  }
+
+  function ultimoKup(alumnoId) {
+    var v = "";
+    DATOS.chequeos.slice().sort(function (a, b) { return a.fecha < b.fecha ? -1 : 1; })
+      .forEach(function (c) {
+        var r = c.resultados.find(function (x) { return x.alumnoId === alumnoId; });
+        if (r && r.kup !== null && r.kup !== undefined) v = r.kup;
+      });
+    return v;
+  }
+
+  function actualizarConteo() {
+    var n = $cuerpo.querySelectorAll("tr:not(.ausente)").length;
+    document.getElementById("conteo").textContent = n + (n === 1 ? " presente" : " presentes");
+  }
+
+  DATOS.alumnos.forEach(function (a) { agregarFila(a, false); });
+
+  /* --- alumno nuevo ------------------------------------------------------ */
+
+  document.getElementById("btn-alumno").addEventListener("click", function () {
+    var n = nuevos.length + 1;
+    var alumno = { id: "__nuevo_" + n, nombre: "" };
+    nuevos.push(alumno);
+    var tr = agregarFila(alumno, true);
+    tr.querySelector(".nombre-nuevo").focus();
+  });
+
+  /* Convierte "Jocelyn Méndez" en "jocelyn-mendez" para usarlo como id. */
+  function aId(nombre) {
+    return nombre.trim().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function leerNumero(input) {
+    if (!input || input.value.trim() === "") return null;
+    var n = parseInt(input.value, 10);
+    return isNaN(n) ? null : n;
+  }
+
+  /* --- generar ----------------------------------------------------------- */
+
+  function generar() {
+    var $estado = document.getElementById("estado");
+    var filas = Array.prototype.slice.call($cuerpo.querySelectorAll("tr:not(.ausente)"));
+
+    if (!$fecha.value) { $estado.className = "aviso"; $estado.textContent = "Falta la fecha."; return; }
+    if (!filas.length) { $estado.className = "aviso"; $estado.textContent = "No hay ningún alumno marcado como presente."; return; }
+
+    var alumnosNuevos = [];
+    var resultados = [];
+    var sinNombre = false;
+
+    filas.forEach(function (tr) {
+      var idFila = tr.dataset.alumno;
+      var id = idFila;
+
+      if (idFila.indexOf("__nuevo_") === 0) {
+        var nombre = tr.querySelector(".nombre-nuevo").value.trim();
+        if (!nombre) { sinNombre = true; return; }
+        id = aId(nombre);
+        alumnosNuevos.push({ id: id, nombre: nombre });
+      }
+
+      var valores = {};
+      CONFIG.ordenPlanilla.forEach(function (e) {
+        if (CONFIG.ejercicios[e].bilateral) {
+          var der = leerNumero(tr.querySelector('input[data-ejercicio="' + e + '"][data-lado="der"]'));
+          var izq = leerNumero(tr.querySelector('input[data-ejercicio="' + e + '"][data-lado="izq"]'));
+          valores[e] = (der === null && izq === null) ? null : { der: der, izq: izq };
+        } else {
+          valores[e] = leerNumero(tr.querySelector('input[data-ejercicio="' + e + '"]'));
+        }
+      });
+
+      resultados.push({ alumnoId: id, kup: leerNumero(tr.querySelector(".kup-input")), valores: valores });
+    });
+
+    if (sinNombre) {
+      $estado.className = "aviso";
+      $estado.textContent = "Hay un alumno nuevo sin nombre. Ponle nombre o destíldalo.";
+      return;
+    }
+
+    // Aviso, no bloqueo: puede ser una corrección deliberada de una fecha ya cargada.
+    var repetida = DATOS.chequeos.some(function (c) { return c.fecha === $fecha.value; });
+
+    var texto = "";
+    if (alumnosNuevos.length) {
+      texto += "// --- pegar dentro de  alumnos: [ ... ]  ---\n";
+      texto += alumnosNuevos.map(function (a) {
+        return '{ id: "' + a.id + '", nombre: "' + a.nombre.replace(/"/g, '\\"') + '" },';
+      }).join("\n");
+      texto += "\n\n// --- pegar dentro de  chequeos: [ ... ]  ---\n";
+    }
+
+    texto += bloqueChequeo($fecha.value, resultados);
+    document.getElementById("salida").value = texto;
+
+    $estado.className = repetida ? "aviso" : "ok";
+    $estado.textContent = repetida
+      ? "Listo, pero ojo: ya existe un chequeo con esa fecha en datos.js."
+      : "Listo: " + resultados.length + " alumnos. Copia y pega en js/datos.js.";
+  }
+
+  /* Escribe el bloque con el mismo formato que el resto de datos.js, para que
+     el archivo se siga leyendo igual después de meses de cargas. */
+  function bloqueChequeo(fecha, resultados) {
+    var l = [];
+    l.push("    {");
+    l.push('      fecha: "' + fecha + '",');
+    l.push("      resultados: [");
+
+    resultados.forEach(function (r, i) {
+      var coma = i === resultados.length - 1 ? "" : ",";
+      l.push('        { alumnoId: "' + r.alumnoId + '", kup: ' + (r.kup === null ? "null" : r.kup) + ", valores: {");
+
+      var pares = CONFIG.ordenPlanilla.map(function (e) {
+        var v = r.valores[e];
+        if (v === null) return e + ": null";
+        if (typeof v === "object") {
+          return e + ": { der: " + (v.der === null ? "null" : v.der) +
+                     ", izq: " + (v.izq === null ? "null" : v.izq) + " }";
+        }
+        return e + ": " + v;
+      });
+
+      // Se corta en varias líneas para que no queden renglones eternos, con la
+      // misma sangría que el resto de datos.js.
+      var SANGRIA = "          ";
+      var linea = SANGRIA;
+      pares.forEach(function (p, k) {
+        var ultimo = k === pares.length - 1;
+        if (linea !== SANGRIA && (linea + p).length > 84) {
+          l.push(linea.replace(/\s+$/, ""));
+          linea = SANGRIA;
+        }
+        linea += p + (ultimo ? "" : ", ");
+      });
+      if (linea.trim()) l.push(linea.replace(/\s+$/, ""));
+
+      l.push("        } }" + coma);
+      if (coma) l.push("");
+    });
+
+    l.push("      ]");
+    l.push("    }");
+    return l.join("\n");
+  }
+
+  document.getElementById("btn-generar").addEventListener("click", generar);
+
+  document.getElementById("btn-copiar").addEventListener("click", function () {
+    var $salida = document.getElementById("salida");
+    var $estado = document.getElementById("estado");
+    if (!$salida.value) { generar(); }
+    if (!$salida.value) return;
+    $salida.select();
+    // execCommand es lo que funciona con file://, donde el portapapeles async
+    // suele estar bloqueado por falta de origen seguro.
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    if (!ok && navigator.clipboard) {
+      navigator.clipboard.writeText($salida.value).then(function () {
+        $estado.className = "ok"; $estado.textContent = "Copiado.";
+      });
+      return;
+    }
+    $estado.className = ok ? "ok" : "aviso";
+    $estado.textContent = ok ? "Copiado." : "No se pudo copiar solo: selecciona el texto y usa Cmd+C.";
+  });
+
+})();
+</script>
+</body>
+</html>
