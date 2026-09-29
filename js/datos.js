@@ -24,7 +24,9 @@ const DATOS = {
     { id: "yasmin-solorzano", nombre: "Yasmin Solórzano" },
     { id: "dylan-usche",      nombre: "Dylan Useche" },
     { id: "alberto",          nombre: "Alberto" },
-    { id: "niobe",            nombre: "Niobe" }
+    { id: "niobe",            nombre: "Niobe" },
+    { id: "juliano",          nombre: "Juliano" },
+    { id: "maria",            nombre: "María" }
   ],
 
   chequeos: [
@@ -102,6 +104,56 @@ const DATOS = {
           cintura: 30, silla: 11, palma: 15, flecha: 27, recta: 13, sierra: 21,
           punta: 16, martillo: 27, de_lado: 14, horizontal: 17, barredor: 8,
           vertical: 18, doble_pie: { der: 10, izq: 11 }, gancho: 23 } }
+      ]
+    },
+
+    {
+      fecha: "2026-09-28",
+      resultados: [
+        { alumnoId: "michel-cardenas", kup: 3, valores: {
+          cintura: 31, silla: 11, palma: 15, flecha: 32, recta: 15, sierra: 18,
+          punta: 18, martillo: 22, de_lado: 13, horizontal: 18, barredor: 13,
+          vertical: 19, doble_pie: { der: 11, izq: 11 }, gancho: 25 } },
+
+        { alumnoId: "samuel-ojeda", kup: 2, valores: {
+          cintura: 33, silla: 10, palma: 15, flecha: 25, recta: 12, sierra: 16,
+          punta: 17, martillo: 23, de_lado: 14, horizontal: 19, barredor: 11,
+          vertical: 18, doble_pie: { der: 10, izq: 11 }, gancho: 22 } },
+
+        { alumnoId: "juliano", kup: 2, valores: {
+          cintura: 29, silla: 10, palma: 23, flecha: 30, recta: 14, sierra: 16,
+          punta: 17, martillo: 21, de_lado: 14, horizontal: 16, barredor: 10,
+          vertical: 17, doble_pie: { der: 10, izq: 11 }, gancho: 26 } },
+
+        { alumnoId: "larry-ojeda", kup: 0, valores: {
+          cintura: 29, silla: 11, palma: 20, flecha: 25, recta: 12, sierra: 18,
+          punta: 15, martillo: 24, de_lado: 14, horizontal: 19, barredor: 10,
+          vertical: 18, doble_pie: { der: 10, izq: 10 }, gancho: 24 } },
+
+        { alumnoId: "maria", kup: 3, valores: {
+          cintura: 29, silla: 9, palma: 17, flecha: 24, recta: 11, sierra: 15,
+          punta: 14, martillo: 20, de_lado: 11, horizontal: 10, barredor: 8,
+          vertical: 15, doble_pie: { der: 10, izq: 10 }, gancho: 20 } },
+
+        { alumnoId: "yasmin-solorzano", kup: 0, valores: {
+          cintura: 24, silla: 6, palma: 22, flecha: 24, recta: 15, sierra: 13,
+          punta: 12, martillo: 23, de_lado: 9, horizontal: 12, barredor: 9,
+          vertical: 14, doble_pie: { der: 9, izq: 7 }, gancho: 18 } },
+
+        { alumnoId: "dylan-usche", kup: 2, valores: {
+          cintura: 28, silla: 9, palma: 19, flecha: 28, recta: 13, sierra: 16,
+          punta: 14, martillo: 23, de_lado: 13, horizontal: 15, barredor: 9,
+          vertical: 14, doble_pie: { der: 9, izq: 9 }, gancho: 21 } },
+
+        { alumnoId: "alberto", kup: 3, valores: {
+          cintura: 26, silla: 9, palma: 19, flecha: 28, recta: 15, sierra: 17,
+          punta: 19, martillo: 23, de_lado: 9, horizontal: 19, barredor: 12,
+          vertical: 17, doble_pie: { der: 10, izq: 10 }, gancho: 21 } },
+
+        { alumnoId: "jocelyn-mendez", kup: 3, valores: {
+          cintura: 22, silla: 7, palma: 14, flecha: 26, recta: 14, sierra: 16,
+          punta: 18, martillo: 20, de_lado: 13, horizontal: 19, barredor: 12,
+          vertical: 17, doble_pie: { der: 11, izq: 10 }, gancho: 22 } }
       ]
     }
 
